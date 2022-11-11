@@ -8,9 +8,7 @@ import { urlList } from "./urlList.json"
 import { uploadFile } from "./uploadData"
 import { switchTime, formatTime } from "./utils"
 
-// let urlList = ["https://twitter.com/search?q=defi%20exploit&src=typed_query&f=live",
-//   "https://twitter.com/search?q=crypto%20exploit&src=typed_query&f=live",
-//   "https://twitter.com/peckshieldalert"]
+
 let flag = false
 let dataInfo = {}
 urlList.forEach(item => {
@@ -21,6 +19,7 @@ urlList.forEach(item => {
 })
 console.log("是否会对本页面的数据进行爬取", flag);
 
+// Start:打开urlList中存在页面执行
 if (flag) {
   let data = []
   let timer = null
@@ -183,8 +182,7 @@ if (flag) {
     // 等到确认内容发送成功后 => 发送到background⾥去 
 
     setTimeout(function () {
-
-      chrome.runtime.sendMessage({ type: "parseLabels", data: data, dataInfo: dataInfo }, function (response) { });
+      chrome.runtime.sendMessage({ type: "parseLabels", data: data, dataInfo: dataInfo, content: content }, function (response) { });
     }, [2000])
 
     // window.close()
@@ -210,9 +208,8 @@ if (flag) {
   }
 
   windowScroll()
-
 }
-
+// End:打开urlList中存在页面执行
 
 const Main = () => {
 
@@ -228,8 +225,6 @@ const Main = () => {
     </Frame>
   )
 }
-
-
 
 
 const app = document.createElement('div');

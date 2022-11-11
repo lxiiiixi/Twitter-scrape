@@ -10,6 +10,8 @@ chrome.browserAction.onClicked.addListener(function (tab) {
    });
 });
 
+
+
 // 侦听从⻚⾯发来的消息和数据
 chrome.runtime.onMessage.addListener(
    function (request, sender, sendResponse) {
@@ -23,16 +25,16 @@ chrome.runtime.onMessage.addListener(
          openTabs()
          return true;
       } else if (request.type === "parseLabels") {
-         console.log("本次上传的数据列表:", request.data, "数据信息:", request.dataInfo);
+         console.log("本次上传的数据列表:", request.data, "数据信息:", request.dataInfo, request.content);
          closeTabs(request.dataInfo.url)
          return true;
       }
    }
 );
 
-let timer = null
+// let timer = null
 function openTabs() {
-   // 打开一轮
+   // 只打开一轮
    function openOneRound() {
       if (urlIndex < urlList.length) {
          let openUrl = urlList[urlIndex].url
@@ -47,10 +49,10 @@ function openTabs() {
 
    openOneRound()
 
-   clearTimeout(timer)
-   timer = setTimeout(function () {
-      openOneRound()
-   }, [720000])
+   // clearTimeout(timer)
+   // timer = setTimeout(function () {
+   //    openOneRound()
+   // }, [720000])
 }
 
 

@@ -5,14 +5,15 @@ import './App.css';
 import UploadData from "./uploadData"
 import { urlList } from "./urlList.json"
 
+const getStart = () => {
+  chrome.runtime.sendMessage({ type: "startScan", data: urlList }, function (response) { });
+}
+
+if (window.location.href === "https://twitter.com/home") {
+  getStart()
+}
 
 export default function App({ isExt }) {
-
-
-  const getStart = () => {
-    chrome.runtime.sendMessage({ type: "startScan", data: urlList }, function (response) { });
-  }
-
 
   return (
     <div className="App">

@@ -6,8 +6,8 @@ const S3_BUCKET = 'fp-website-1';
 const REGION = 'us-east-1';
 
 AWS.config.update({
-    accessKeyId: 'AKIA37IEKUUURWPU22QU',
-    secretAccessKey: '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'
+    accessKeyId: 'AKIA37IEKUUUQMK5GDEM',
+    secretAccessKey: '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'
 })
 
 
@@ -28,7 +28,7 @@ export const uploadFile = (file) => {
         Key: `scrapy_twitter_data/${subFileName}/${file.name}`
     };
 
-    // console.log(file, params);
+    console.log(file, params);
 
 
     // putObject为分段上传使用的方法
