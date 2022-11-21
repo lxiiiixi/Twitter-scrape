@@ -41,17 +41,21 @@ function Content() {
 
             let queryWhole = "article"
             let queryTime = "time"
-            let queryContent = ".css-901oao.r-18jsvk2.r-37j5jr.r-a023e6.r-16dba41.r-rjixqe.r-bcqeeo.r-bnwqim.r-qvutc0 span"
+            // let queryContent = ".css-901oao.r-18jsvk2.r-37j5jr.r-a023e6.r-16dba41.r-rjixqe.r-bcqeeo.r-bnwqim.r-qvutc0 span"
             let queryUser = "a.css-4rbku5.css-18t94o4.css-1dbjc4n.r-1loqt21.r-1wbh5a2.r-dnmrzs.r-1ny4l3l"
             let queryInteract = ".css-1dbjc4n.r-1ta3fxp.r-18u37iz.r-1wtj0ep.r-1s2bzr4.r-1mdbhws"
             let articles = Array.from(document.querySelectorAll(queryWhole))
 
+
             console.log(articles);
             articles.forEach((item, index) => {
-                let content = ""
-                Array.from(item.querySelectorAll(queryContent)).forEach(oneContent => {
-                    content += oneContent.textContent
-                })
+                // 用原来获取内容的方式发现在服务器和自己本地获取的dom节点内容不一样(本地可以获取到但是服务器上没有内容,还不知道原因)
+                // item.textContent也能获取到文本内容,但是弊端是所有的数据全都被获取和集中到一起了
+
+                // let content = ""
+                // Array.from(item.querySelectorAll(queryContent)).forEach(oneContent => {
+                //     content += oneContent.textContent
+                // })
                 const timeNode = Array.from(item.querySelectorAll(queryTime))[0]
 
                 // articles中获取不到时间的为广告
@@ -86,7 +90,7 @@ function Content() {
                     const obj = {
                         time: timeNode.dateTime,
                         articleURL: timeNode.parentNode.href,
-                        content,
+                        content: item.textContent,
                         user: Array.from(item.querySelectorAll(queryUser))[0]?.href,
                         replayNum,
                         retweetNum,
