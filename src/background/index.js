@@ -3,6 +3,7 @@ import { apiRequest } from '@/api'
 
 let urlIndex = 0
 let urlList = []
+const OpenNums = 3
 
 // 侦听从⻚⾯发来的消息和数据
 chrome.runtime.onMessage.addListener(
@@ -12,12 +13,12 @@ chrome.runtime.onMessage.addListener(
         // 这一部分只会执行一次(在点击爬取按钮之后)
         if (request.type === "startScan") {
             urlList = request.data
-
             console.log(urlList);
             openTabs()
             return true;
         } else if (request.type === "parseLabels") {
-            console.log("本次上传的数据列表:", request.data, "数据信息:", request.dataInfo, request.content);
+            // console.log("本次上传的数据列表:", request.data, "数据信息:", request.dataInfo, request.content);
+            console.log("最终上传的数据:", request.content);
             sendResponse({ data: request.data })
             closeTabs(request.dataInfo.url)
             return true;
@@ -27,16 +28,37 @@ chrome.runtime.onMessage.addListener(
 
 // let timer = null
 function openTabs() {
-    // 只打开一轮
+    // 只打开一轮 一轮之打开5次
     function openOneRound() {
-        if (urlIndex < urlList.length) {
-            let openUrl = urlList[urlIndex].url
-            console.log("打开URL:", openUrl);
-            chrome.tabs.create({ url: openUrl })
-            urlIndex++;
-            openTabs()
-        } else {
-            urlIndex = 0
+        // if (urlIndex < urlList.length) {
+        //     // 每次循环打开5次
+        //     for (let i = 0; i < 5; i++) {
+        //         // 需要检查这5次中是否存在没有的情况
+        //         if (urlList[urlIndex]) {
+        //             let openUrl = urlList[urlIndex].url
+        //             console.log("打开URL:", openUrl);
+        //             chrome.tabs.create({ url: openUrl })
+        //             urlIndex++;
+        //             // openTabs()
+        //         }
+        //     }
+        // } else {
+        //     urlIndex = 0
+        // }
+
+        // 每次循环打开5次
+        for (let i = 0; i < OpenNums; i++) {
+            // 需要检查这几次中是否存在没有的情况
+            if (urlList[urlIndex]) {
+                let openUrl = urlList[urlIndex].url
+                console.log("打开URL:", openUrl);
+                chrome.tabs.create({ url: openUrl })
+                urlIndex++;
+                // openTabs()
+            } else {
+                urlIndex = 0
+                console.log("1 所有的url被打开完毕 需要结束");
+            }
         }
     }
 
@@ -48,37 +70,29 @@ function openTabs() {
     // }, [720000])
 }
 
-
+let closeTimes = 0
 function closeTabs(url) { // 3秒左右关闭
     const time = 4000 + Math.round(Math.random() * 3000)
     setTimeout(function () {
         chrome.tabs.query({ url: url }, function (tabs) {
-            chrome.tabs.remove(tabs[0].id, function () { });
+            // chrome.tabs.remove(tabs[0].id, function () { });
         })
     }, time)
+    closeTimes++
+    console.log("tab关闭此次数:", closeTimes, "此时打开url的索引", urlIndex, "总的url数量", urlList.length);
+
+
+    // 实现的主要思想: 每次打开固定n个tab 如果同样执行的了关闭n个tab 就再执行一轮openTabs()
+    // 基本上实现了没什么问题 但是总觉得不太靠谱
+    // 比如中间一旦有一次获取有问题 那么后面也会收到影响
+    if (closeTimes && (closeTimes % OpenNums === 0) && urlIndex < urlList.length) {
+        openTabs()
+    }
 }
 
 
-
-// 文件下载
-// function downloadFile(content, dataInfo) {
-//    const { type, keywords } = dataInfo
-//    const time = switchTime(new Date().getTime())
-//    const filename = `${type}_${keywords}_${time}.json`
-//    const downloadContent = JSON.stringify(content)
-
-//    var blob = new Blob([downloadContent], { type: "text/json;charset=UTF-8" });
-//    var url = window.URL.createObjectURL(blob);
-//    console.log(blob, url);
-
-//    setTimeout(function () {
-//       chrome.downloads.download({
-//          url: url,
-//          filename: filename
-//       })
-//    }, 2000)
-// }
-
+// 问题1: 数据获取不准确(估计是时间戳获取的时候对比有问题)
+// 问题2: 队列问题
 
 
 

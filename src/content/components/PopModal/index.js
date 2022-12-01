@@ -33,7 +33,7 @@ function PopModal(props) {
                 {displayData.length && displayData.map(item => {
                     return (
                         <div className="item-box">
-                            <li> 发布时间: {item.user} </li>
+                            <li> 发布时间: {item.time} </li>
                             <li> 发布用户: {item.user} </li>
                             <li> 推文内容: {item.content} </li>
                         </div>

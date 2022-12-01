@@ -24,6 +24,21 @@
             "type": "account",
             "url": "https://twitter.com/BeosinAlert",
             "keywords": "BeosinAlert"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/sassal0x",
+            "keywords": "test1"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/waylybaye",
+            "keywords": "test2"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/guidorosso",
+            "keywords": "test3"
         }
     ]
 }

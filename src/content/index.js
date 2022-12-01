@@ -9,9 +9,11 @@ import { uploadFile } from "@/common/uploadData"
 import { switchTime, formatTime } from "@/common/utils"
 
 const urlList = jsonData.urlLists
-let flag = false
+let flag = false // 用于判断是否要获取本页面
 let dataInfo = {}
 let displayData = []
+let resultData = [] // 最终的数据
+let timer = null
 urlList.forEach(item => {
     if (item.url === window.location.href) {
         flag = true
@@ -28,34 +30,111 @@ console.log("是否会对本页面的数据进行爬取:", flag);
 function Content() {
     const [mainModalVisiable, setMainModalVisiable] = useState(false)
 
-    // Start:打开urlList中存在页面执行
+    // 如果符合条件就开始获取数据
     if (flag) {
-        let data = []
-        let timer = null
-
-        const lastTimeStamp = new Date().getTime() - 600000 - 60000 // 10min之前的时间戳 (作为触发点)
+        getData()
+    }
+    // 1000 60 60 12  
+    function getData() {
+        const lastTimeStamp = new Date().getTime() - 1000 * 60 * 60 * 12   // 一天之前的时间戳 (作为触发点)
+        // const lastTimeStamp = new Date().getTime() - 600000 - 60000    // 10min之前的时间戳 (作为触发点)
         console.log(lastTimeStamp, formatTime(lastTimeStamp));
 
+        // 屏幕开始滚动并在滚动的过程中获取数据
+        windowScroll(lastTimeStamp, getTwitter)
 
-        const getTwitter = () => {
+        function windowScroll(stopTimeStamp, getDataFunction) {
+            clearTimeout(timer)
+            function scrollAgain() {
+                // console.log("开始获取时间节点");
+                let ifScroll = true
+                const Time = Array.from(document.querySelectorAll("time"))
+                // 等待页面有内容了才开始循环
+                if (Time.length) {
+                    // 问题的临时解决方法: 每次只对比最后一个time节点, 但是这样有可能会在最后一个正好命中广告 / 转发的内容(小概率)
+                    // 后来发现碰到的概率还挺大的 那就对比这个和前面两个节点 如果都小于就不滚 否则还是滚一次
+                    console.log("开始本轮判断");
+                    const itemTimeStamp1 = new Date(Time[Time.length - 1]?.dateTime).getTime()
+                    const itemTimeStamp2 = new Date(Time[Time.length - 2]?.dateTime).getTime()
+                    console.log(Time, itemTimeStamp1, itemTimeStamp2);
+                    // 页面滚动的种终止条件
+                    if (itemTimeStamp1 < stopTimeStamp && itemTimeStamp2 < stopTimeStamp) {
+                        console.log(Time[Time.length - 1], Time[Time.length - 2]);
+                        console.log(formatTime(itemTimeStamp1), "|", formatTime(itemTimeStamp2), "|", formatTime(stopTimeStamp));
+                        console.log("不用滚动了");
+                        ifScroll = false
+                    }
 
+
+                    if (ifScroll) {
+                        // console.log("滚动+再执行一次");
+                        window.scrollBy(0, window.innerHeight * 3)
+                        clearTimeout(timer)
+                        timer = setTimeout(function () {
+                            getDataFunction()
+                            scrollAgain()
+                        }, [3000])
+                    } else {
+                        console.log("这里是本轮程序终止点 所有数据获取完毕,开始提交数据到background", resultData);
+                        const downLoadData = filterData(removeTheSame(resultData), stopTimeStamp)
+                        const content = {
+                            result: downLoadData.length,
+                            time: formatTime(new Date().getTime()),
+                            task: dataInfo.type + "_" + dataInfo.keywords,
+                            timeSection: `${formatTime(lastTimeStamp)} => ${formatTime(new Date().getTime())}`,// 本次获取的时间区间
+                            data: downLoadData
+                        }
+                        downloadFile(content, dataInfo) // 上传到服务器
+
+                        // 这一步必须等到所以内容获取完成后执行 之前放在上面就会有问题 因为有很多异步操作
+                        setTimeout(function () {
+                            chrome.runtime.sendMessage({
+                                type: "parseLabels",
+                                data: downLoadData, // 最终会下载的数据
+                                dataInfo: dataInfo,
+                                content: content // 最终上传的所有内容
+                            }, function (response) {
+                                console.log(response);
+                                displayData = response.data
+                                // console.log(displayData);
+                                setMainModalVisiable(true)
+                                flag = false
+                            });
+                        }, [2000])
+                    }
+                } else {
+                    // 如果没有获取到内容说明也没还没加载出来(再等待一会人重新执行滚动)
+                    console.log("没有获取到内容 页面加载有问题");
+
+                    clearTimeout(timer)
+                    timer = setTimeout(function () {
+                        scrollAgain()
+                    }, [4000])
+                }
+            }
+
+            // 第一次执行 这里需要设置延时器等待屏幕加载 
+            timer = setTimeout(function () {
+                // console.log("first scroll");
+                scrollAgain()
+            }, [4000])
+        }
+
+        // 获取Twitter数据
+        function getTwitter() {
             let queryWhole = "article"
             let queryTime = "time"
-            // let queryContent = ".css-901oao.r-18jsvk2.r-37j5jr.r-a023e6.r-16dba41.r-rjixqe.r-bcqeeo.r-bnwqim.r-qvutc0 span"
+            let queryContent = ".css-901oao.r-18jsvk2.r-37j5jr.r-a023e6.r-16dba41.r-rjixqe.r-bcqeeo.r-bnwqim.r-qvutc0 span"
             let queryUser = "a.css-4rbku5.css-18t94o4.css-1dbjc4n.r-1loqt21.r-1wbh5a2.r-dnmrzs.r-1ny4l3l"
             let queryInteract = ".css-1dbjc4n.r-1ta3fxp.r-18u37iz.r-1wtj0ep.r-1s2bzr4.r-1mdbhws"
             let articles = Array.from(document.querySelectorAll(queryWhole))
 
-
-            console.log(articles);
+            // console.log(articles);
             articles.forEach((item, index) => {
-                // 用原来获取内容的方式发现在服务器和自己本地获取的dom节点内容不一样(本地可以获取到但是服务器上没有内容,还不知道原因)
-                // item.textContent也能获取到文本内容,但是弊端是所有的数据全都被获取和集中到一起了
-
-                // let content = ""
-                // Array.from(item.querySelectorAll(queryContent)).forEach(oneContent => {
-                //     content += oneContent.textContent
-                // })
+                let content = ""
+                Array.from(item.querySelectorAll(queryContent)).forEach(oneContent => {
+                    content += oneContent.textContent
+                })
                 const timeNode = Array.from(item.querySelectorAll(queryTime))[0]
 
                 // articles中获取不到时间的为广告
@@ -86,96 +165,19 @@ function Content() {
                         // console.log(replayNum, retweetNum, likeNum);
                     }
 
-
                     const obj = {
-                        time: timeNode.dateTime,
+                        timeStamp: new Date(timeNode.dateTime).getTime(),
+                        time: formatTime(new Date(timeNode.dateTime).getTime()),
                         articleURL: timeNode.parentNode.href,
-                        content: item.textContent,
+                        content,
                         user: Array.from(item.querySelectorAll(queryUser))[0]?.href,
                         replayNum,
                         retweetNum,
                         likeNum,
                     }
-                    data.push(obj)
-                }
-
-            })
-
-
-            console.log(data);
-            // return data
-            // displayData = data // 测试
-
-            // 对data做一下筛选: 只保存十分钟之前到现在的内容
-            let filteredData = []
-
-            data.forEach(item => {
-                const itemTimeStamp = new Date(item.time).getTime()
-                // console.log(formatTime(itemTimeStamp), "|", formatTime(lastTimeStamp));
-                if (itemTimeStamp > lastTimeStamp) {
-                    // 在这10分钟之内的内容就上传
-                    filteredData.push(item)
+                    resultData.push(obj)
                 }
             })
-            console.log("筛选之后的数据filteredData", filteredData);
-
-            return filteredData
-        }
-
-
-
-        const windowScroll = () => {
-            // 1. 进入目标页面之后
-            // 2. 获取当前所显示内容的所有time 找到最前面的time对比与上一次截止时间戳(浏览器缓存/直接当前时间戳-10min)
-            // 3. 对比一次屏幕就滚动一段长度 如果一直对比到如果某个时间小于了这个时间戳就停止滚动 再开始执行后续的爬取
-            clearTimeout(timer)
-
-            function scrollAgain() {
-
-                console.log("开始判断是否滚动");
-                let ifScroll = true
-                // 这里我都采用以中国标准时间为准
-                const Time = Array.from(document.querySelectorAll("time"))
-
-                // 不做判断的话会陷入死循环
-                if (Time.length) {
-                    Time.forEach(time => {
-                        const itemTimeStamp = new Date(time.dateTime).getTime()
-
-                        // 11.16这里出现了一个bug: 单独单开某个页面不会出现,但是执行整个流程的时候其中有一个页面会出现死循环(无限滚动)
-
-                        // 如果出现了在当前时间戳之前的 (说明可以不用再滚动了)
-                        if (itemTimeStamp < lastTimeStamp) {
-                            console.log("不用滚动了");
-                            ifScroll = false
-                        }
-                    })
-                    if (ifScroll) {
-                        console.log("滚动+再执行一次");
-                        window.scrollBy(0, window.innerHeight * 3)
-                        scrollAgain()
-                    } else {
-                        // 如果滚动到合适的内容就可以开始获取数据了
-                        getStart()
-                        return null
-                    }
-                } else {
-                    // 如果没有获取到内容说明也没还没加载出来(再等待一会人重新执行滚动)
-                    console.log("没有获取到内容 页面加载有问题");
-
-                    clearTimeout(timer)
-                    timer = setTimeout(function () {
-                        scrollAgain()
-                    }, [4000])
-                }
-            }
-
-
-            // 这里需要设置延时器等待屏幕加载
-            timer = setTimeout(function () {
-                scrollAgain()
-            }, [4000])
-
         }
 
         // 内容上传
@@ -189,41 +191,39 @@ function Content() {
             if (content.result) {
                 console.log("准备上传:", file);
                 // console.log(content);
-                uploadFile(file)
+                // uploadFile(file)
             } else {
                 console.log("这10min内没有更新的数据");
             }
         }
 
 
-        const getStart = () => {
-            const data = getTwitter()
-            const content = {
-                result: data.length,
-                time: formatTime(new Date().getTime()),
-                task: dataInfo.type + "_" + dataInfo.keywords,
-                data: data
-            }
-            downloadFile(content, dataInfo)
-            // 等到确认内容发送成功后 => 发送到background⾥去 
-
-            setTimeout(function () {
-                chrome.runtime.sendMessage({
-                    type: "parseLabels",
-                    data: data,
-                    dataInfo: dataInfo,
-                    content: content
-                }, function (response) {
-                    displayData = response.data
-                    // console.log(displayData);
-                    setMainModalVisiable(true)
-                    flag = false
-                });
-            }, [2000])
+        // 去掉重复项
+        const removeTheSame = (oldData) => {
+            let newArr = {}
+            oldData.forEach(item => {
+                newArr[item.articleURL] = item
+            })
+            console.log("去掉重复项:", Object.values(newArr));
+            return Object.values(newArr)
         }
-        windowScroll()
+
+        // 筛选出stopTimeStamp时间后面的所有数据
+        const filterData = (oldData, stopTimeStamp) => {
+            // 对data做一下筛选: 只保存stopTimeStamp这个节点到现在的内容
+            let filteredData = []
+            oldData.forEach(item => {
+                const itemTimeStamp = item.timeStamp
+                // console.log(formatTime(itemTimeStamp), "|", formatTime(stopTimeStamp));
+                if (itemTimeStamp > stopTimeStamp) {
+                    // 在这个stopTimeStamp之内就筛选出来
+                    filteredData.push(item)
+                }
+            })
+            console.log("筛选之后的数据filteredData", filteredData);
+            return filteredData
+        }
     }
-    // End:打开urlList中存在页面执行
 
     return (
         <div className="CRX-content">
