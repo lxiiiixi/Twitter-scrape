@@ -3,7 +3,6 @@ import { apiRequest } from '@/api'
 
 let urlIndex = 0
 let urlList = []
-const OpenNums = 3
 
 // 侦听从⻚⾯发来的消息和数据
 chrome.runtime.onMessage.addListener(
@@ -14,6 +13,7 @@ chrome.runtime.onMessage.addListener(
         if (request.type === "startScan") {
             urlList = request.data
             console.log(urlList);
+            urlIndex = 0 // 从头开始索引(上次结束后会被赋值为-1 后面的函数无法执行)
             openTabs()
             return true;
         } else if (request.type === "parseLabels") {
@@ -28,41 +28,16 @@ chrome.runtime.onMessage.addListener(
 
 // let timer = null
 function openTabs() {
-    // 只打开一轮 一轮之打开5次
-    function openOneRound() {
-        // if (urlIndex < urlList.length) {
-        //     // 每次循环打开5次
-        //     for (let i = 0; i < 5; i++) {
-        //         // 需要检查这5次中是否存在没有的情况
-        //         if (urlList[urlIndex]) {
-        //             let openUrl = urlList[urlIndex].url
-        //             console.log("打开URL:", openUrl);
-        //             chrome.tabs.create({ url: openUrl })
-        //             urlIndex++;
-        //             // openTabs()
-        //         }
-        //     }
-        // } else {
-        //     urlIndex = 0
-        // }
 
-        // 每次循环打开5次
-        for (let i = 0; i < OpenNums; i++) {
+    if (urlList[urlIndex]) {
+        for (let i = 0; i < 3; i++) {
             // 需要检查这几次中是否存在没有的情况
-            if (urlList[urlIndex]) {
-                let openUrl = urlList[urlIndex].url
-                console.log("打开URL:", openUrl);
-                chrome.tabs.create({ url: openUrl })
-                urlIndex++;
-                // openTabs()
-            } else {
-                urlIndex = 0
-                console.log("1 所有的url被打开完毕 需要结束");
-            }
+            let openUrl = urlList[urlIndex].url
+            console.log("打开URL:", openUrl);
+            chrome.tabs.create({ url: openUrl })
+            urlIndex++;
         }
     }
-
-    openOneRound()
 
     // clearTimeout(timer)
     // timer = setTimeout(function () {
@@ -70,23 +45,29 @@ function openTabs() {
     // }, [720000])
 }
 
-let closeTimes = 0
+
 function closeTabs(url) { // 3秒左右关闭
     const time = 4000 + Math.round(Math.random() * 3000)
     setTimeout(function () {
         chrome.tabs.query({ url: url }, function (tabs) {
-            // chrome.tabs.remove(tabs[0].id, function () { });
+            chrome.tabs.remove(tabs[0].id, function () { });
         })
     }, time)
-    closeTimes++
-    console.log("tab关闭此次数:", closeTimes, "此时打开url的索引", urlIndex, "总的url数量", urlList.length);
+
+    console.log("此时打开url的索引", urlIndex, "总的url数量", urlList.length);
 
 
     // 实现的主要思想: 每次打开固定n个tab 如果同样执行的了关闭n个tab 就再执行一轮openTabs()
     // 基本上实现了没什么问题 但是总觉得不太靠谱
     // 比如中间一旦有一次获取有问题 那么后面也会收到影响
-    if (closeTimes && (closeTimes % OpenNums === 0) && urlIndex < urlList.length) {
-        openTabs()
+    if (urlList[urlIndex]) {
+        let openUrl = urlList[urlIndex].url
+        console.log("打开URL:", openUrl);
+        chrome.tabs.create({ url: openUrl })
+        urlIndex++;
+    } else {
+        urlIndex = -1
+        console.log("2 所有的url被打开完毕 本次不会执行打开操作");
     }
 }
 

@@ -36,8 +36,11 @@ function Content() {
     }
     // 1000 60 60 12  
     function getData() {
-        const lastTimeStamp = new Date().getTime() - 1000 * 60 * 60 * 12   // 一天之前的时间戳 (作为触发点)
-        // const lastTimeStamp = new Date().getTime() - 600000 - 60000    // 10min之前的时间戳 (作为触发点)
+
+        // 这里还需要再次测试确认数据获取的准确性
+
+        // const lastTimeStamp = new Date().getTime() - 1000 * 60 * 60 * 12   // 一天之前的时间戳 (作为触发点)
+        const lastTimeStamp = new Date().getTime() - 600000 - 60000    // 10min之前的时间戳 (作为触发点)
         console.log(lastTimeStamp, formatTime(lastTimeStamp));
 
         // 屏幕开始滚动并在滚动的过程中获取数据
