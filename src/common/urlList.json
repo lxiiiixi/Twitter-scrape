@@ -27,18 +27,28 @@
         },
         {
             "type": "account",
-            "url": "https://twitter.com/sassal0x",
-            "keywords": "test1"
+            "url": "https://twitter.com/binance",
+            "keywords": "Binance"
         },
         {
             "type": "account",
-            "url": "https://twitter.com/waylybaye",
-            "keywords": "test2"
+            "url": "https://twitter.com/Uniswap",
+            "keywords": "Uniswap"
         },
         {
             "type": "account",
-            "url": "https://twitter.com/guidorosso",
-            "keywords": "test3"
+            "url": "https://twitter.com/ethereum",
+            "keywords": "Ethereum"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/coinbase",
+            "keywords": "Coinbase"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/cz_binance",
+            "keywords": "Cz_binance"
         }
     ]
 }

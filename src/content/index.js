@@ -39,7 +39,8 @@ function Content() {
 
         // 这里还需要再次测试确认数据获取的准确性
 
-        // const lastTimeStamp = new Date().getTime() - 1000 * 60 * 60 * 12   // 一天之前的时间戳 (作为触发点)
+        // const lastTimeStamp = new Date().getTime() - 1000 * 60 * 60 * 12   // 半天之前的时间戳 (作为触发点)
+        // const lastTimeStamp = new Date().getTime() - 3 * 600000 - 60000    // 20min之前的时间戳 (作为触发点)
         const lastTimeStamp = new Date().getTime() - 600000 - 60000    // 10min之前的时间戳 (作为触发点)
         console.log(lastTimeStamp, formatTime(lastTimeStamp));
 
@@ -67,7 +68,7 @@ function Content() {
                         console.log("不用滚动了");
                         ifScroll = false
                     }
-
+                    getDataFunction() // 解决如果页面不滚动就完全没数据
 
                     if (ifScroll) {
                         // console.log("滚动+再执行一次");
@@ -106,7 +107,7 @@ function Content() {
                         }, [2000])
                     }
                 } else {
-                    // 如果没有获取到内容说明也没还没加载出来(再等待一会人重新执行滚动)
+                    // 如果没有获取到内容说明也没还没加载出来(再等待一会儿重新执行滚动)
                     console.log("没有获取到内容 页面加载有问题");
 
                     clearTimeout(timer)
@@ -127,17 +128,13 @@ function Content() {
         function getTwitter() {
             let queryWhole = "article"
             let queryTime = "time"
-            let queryContent = ".css-901oao.r-18jsvk2.r-37j5jr.r-a023e6.r-16dba41.r-rjixqe.r-bcqeeo.r-bnwqim.r-qvutc0 span"
+            // let queryContent = ".css-901oao.r-18jsvk2.r-37j5jr.r-a023e6.r-16dba41.r-rjixqe.r-bcqeeo.r-bnwqim.r-qvutc0 span"
             let queryUser = "a.css-4rbku5.css-18t94o4.css-1dbjc4n.r-1loqt21.r-1wbh5a2.r-dnmrzs.r-1ny4l3l"
             let queryInteract = ".css-1dbjc4n.r-1ta3fxp.r-18u37iz.r-1wtj0ep.r-1s2bzr4.r-1mdbhws"
             let articles = Array.from(document.querySelectorAll(queryWhole))
 
             // console.log(articles);
             articles.forEach((item, index) => {
-                let content = ""
-                Array.from(item.querySelectorAll(queryContent)).forEach(oneContent => {
-                    content += oneContent.textContent
-                })
                 const timeNode = Array.from(item.querySelectorAll(queryTime))[0]
 
                 // articles中获取不到时间的为广告
@@ -172,13 +169,14 @@ function Content() {
                         timeStamp: new Date(timeNode.dateTime).getTime(),
                         time: formatTime(new Date(timeNode.dateTime).getTime()),
                         articleURL: timeNode.parentNode.href,
-                        content,
+                        content: item.textContent,
                         user: Array.from(item.querySelectorAll(queryUser))[0]?.href,
                         replayNum,
                         retweetNum,
                         likeNum,
                     }
                     resultData.push(obj)
+                    console.log(resultData);
                 }
             })
         }
@@ -194,7 +192,7 @@ function Content() {
             if (content.result) {
                 console.log("准备上传:", file);
                 // console.log(content);
-                // uploadFile(file)
+                uploadFile(file)
             } else {
                 console.log("这10min内没有更新的数据");
             }
@@ -223,7 +221,7 @@ function Content() {
                     filteredData.push(item)
                 }
             })
-            console.log("筛选之后的数据filteredData", filteredData);
+            console.log("根据时间筛选之后的数据filteredData", filteredData);
             return filteredData
         }
     }
