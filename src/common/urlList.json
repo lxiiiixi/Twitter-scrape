@@ -1,19 +1,14 @@
 {
     "urlLists": [
         {
-            "type": "keyword",
-            "url": "https://twitter.com/search?q=defi%20exploit&src=typed_query&f=live",
-            "keywords": "defi-exploit"
-        },
-        {
-            "type": "keyword",
-            "url": "https://twitter.com/search?q=crypto%20exploit&src=typed_query&f=live",
-            "keywords": "crypto-exploit"
-        },
-        {
             "type": "account",
             "url": "https://twitter.com/peckshieldalert",
             "keywords": "peckshieldalert"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/peckshield",
+            "keywords": "peckshield"
         },
         {
             "type": "account",
@@ -22,33 +17,113 @@
         },
         {
             "type": "account",
+            "url": "https://twitter.com/CertiK",
+            "keywords": "CertiK"
+        },
+        {
+            "type": "account",
             "url": "https://twitter.com/BeosinAlert",
             "keywords": "BeosinAlert"
         },
         {
             "type": "account",
-            "url": "https://twitter.com/binance",
-            "keywords": "Binance"
+            "url": "https://twitter.com/Beosin_com",
+            "keywords": "Beosin_com"
         },
         {
             "type": "account",
-            "url": "https://twitter.com/Uniswap",
-            "keywords": "Uniswap"
+            "url": "https://twitter.com/blocksecteam",
+            "keywords": "blocksecteam"
         },
         {
             "type": "account",
-            "url": "https://twitter.com/ethereum",
-            "keywords": "Ethereum"
+            "url": "https://twitter.com/0xpaladinsec",
+            "keywords": "0xpaladinsec"
         },
         {
             "type": "account",
-            "url": "https://twitter.com/coinbase",
-            "keywords": "Coinbase"
+            "url": "https://twitter.com/halbornsecurity",
+            "keywords": "halbornsecurity"
         },
         {
             "type": "account",
-            "url": "https://twitter.com/cz_binance",
-            "keywords": "Cz_binance"
+            "url": "https://twitter.com/losslessdefi",
+            "keywords": "losslessdefi"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/consensus_ai",
+            "keywords": "consensus_ai"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/chainalysis",
+            "keywords": "chainalysis"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/quantstamp",
+            "keywords": "quantstamp"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/hackenclub",
+            "keywords": "hackenclub"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/redefine_crypto",
+            "keywords": "redefine_crypto"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/agoradefi",
+            "keywords": "agoradefi"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/Redefine_crypto",
+            "keywords": "Redefine_crypto"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/i_am_hapi_one",
+            "keywords": "i_am_hapi_one"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/BoringSecDAO",
+            "keywords": "BoringSecDAO"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/QuillAudits",
+            "keywords": "QuillAudits"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/rugdocio",
+            "keywords": "rugdocio"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/haechi_audit",
+            "keywords": "haechi_audit"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/kudelskisec",
+            "keywords": "kudelskisec"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/leastauthority",
+            "keywords": "leastauthority"
+        },
+        {
+            "type": "account",
+            "url": "https://twitter.com/MixBytes",
+            "keywords": "MixBytes"
         }
     ]
 }

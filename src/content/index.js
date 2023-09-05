@@ -1,5 +1,5 @@
 /*global chrome*/
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { createRoot } from "react-dom/client"
 import PopModal from './components/PopModal'
 import './antd-diy.css'
@@ -14,6 +14,11 @@ let dataInfo = {}
 let displayData = []
 let resultData = [] // 最终的数据
 let timer = null
+
+// const STOPTIMESTAMP = new Date().getTime() - 1000 * 60 * 60 * 12   // 半天之前的时间戳 (作为触发点)
+// const STOPTIMESTAMP = new Date().getTime() - 3 * 600000 - 60000    // 20min之前的时间戳 (作为触发点)
+const STOPTIMESTAMP = new Date().getTime() - 600000 - 60000    // 10min之前的时间戳 (作为触发点)
+
 urlList.forEach(item => {
     if (item.url === window.location.href) {
         flag = true
@@ -34,20 +39,16 @@ function Content() {
     if (flag) {
         getData()
     }
-    // 1000 60 60 12  
     function getData() {
 
         // 这里还需要再次测试确认数据获取的准确性
 
-        // const lastTimeStamp = new Date().getTime() - 1000 * 60 * 60 * 12   // 半天之前的时间戳 (作为触发点)
-        // const lastTimeStamp = new Date().getTime() - 3 * 600000 - 60000    // 20min之前的时间戳 (作为触发点)
-        const lastTimeStamp = new Date().getTime() - 600000 - 60000    // 10min之前的时间戳 (作为触发点)
-        console.log(lastTimeStamp, formatTime(lastTimeStamp));
+        console.log(STOPTIMESTAMP, formatTime(STOPTIMESTAMP));
 
         // 屏幕开始滚动并在滚动的过程中获取数据
-        windowScroll(lastTimeStamp, getTwitter)
+        windowScroll(getTwitter)
 
-        function windowScroll(stopTimeStamp, getDataFunction) {
+        function windowScroll(getDataFunction) {
             clearTimeout(timer)
             function scrollAgain() {
                 // console.log("开始获取时间节点");
@@ -62,9 +63,9 @@ function Content() {
                     const itemTimeStamp2 = new Date(Time[Time.length - 2]?.dateTime).getTime()
                     console.log(Time, itemTimeStamp1, itemTimeStamp2);
                     // 页面滚动的种终止条件
-                    if (itemTimeStamp1 < stopTimeStamp && itemTimeStamp2 < stopTimeStamp) {
+                    if (itemTimeStamp1 < STOPTIMESTAMP && itemTimeStamp2 < STOPTIMESTAMP) {
                         console.log(Time[Time.length - 1], Time[Time.length - 2]);
-                        console.log(formatTime(itemTimeStamp1), "|", formatTime(itemTimeStamp2), "|", formatTime(stopTimeStamp));
+                        console.log(formatTime(itemTimeStamp1), "|", formatTime(itemTimeStamp2), "|", formatTime(STOPTIMESTAMP));
                         console.log("不用滚动了");
                         ifScroll = false
                     }
@@ -79,15 +80,15 @@ function Content() {
                             scrollAgain()
                         }, [3000])
                     } else {
-                        console.log("这里是本轮程序终止点 所有数据获取完毕,开始提交数据到background", resultData);
-                        const downLoadData = filterData(removeTheSame(resultData), stopTimeStamp)
+                        const downLoadData = filterData(removeTheSame(resultData))
                         const content = {
                             result: downLoadData.length,
                             time: formatTime(new Date().getTime()),
                             task: dataInfo.type + "_" + dataInfo.keywords,
-                            timeSection: `${formatTime(lastTimeStamp)} => ${formatTime(new Date().getTime())}`,// 本次获取的时间区间
+                            timeSection: `${formatTime(STOPTIMESTAMP)} => ${formatTime(new Date().getTime())}`,// 本次获取的时间区间
                             data: downLoadData
                         }
+                        console.log("这里是本轮程序终止点 所有数据获取完毕,开始提交数据到background", downLoadData);
                         downloadFile(content, dataInfo) // 上传到服务器
 
                         // 这一步必须等到所以内容获取完成后执行 之前放在上面就会有问题 因为有很多异步操作
@@ -98,7 +99,6 @@ function Content() {
                                 dataInfo: dataInfo,
                                 content: content // 最终上传的所有内容
                             }, function (response) {
-                                console.log(response);
                                 displayData = response.data
                                 // console.log(displayData);
                                 setMainModalVisiable(true)
@@ -167,7 +167,7 @@ function Content() {
 
                     const obj = {
                         timeStamp: new Date(timeNode.dateTime).getTime(),
-                        time: formatTime(new Date(timeNode.dateTime).getTime()),
+                        time: timeNode.dateTime,
                         articleURL: timeNode.parentNode.href,
                         content: item.textContent,
                         user: Array.from(item.querySelectorAll(queryUser))[0]?.href,
@@ -176,7 +176,6 @@ function Content() {
                         likeNum,
                     }
                     resultData.push(obj)
-                    console.log(resultData);
                 }
             })
         }
@@ -210,13 +209,13 @@ function Content() {
         }
 
         // 筛选出stopTimeStamp时间后面的所有数据
-        const filterData = (oldData, stopTimeStamp) => {
+        const filterData = (oldData) => {
             // 对data做一下筛选: 只保存stopTimeStamp这个节点到现在的内容
             let filteredData = []
             oldData.forEach(item => {
                 const itemTimeStamp = item.timeStamp
                 // console.log(formatTime(itemTimeStamp), "|", formatTime(stopTimeStamp));
-                if (itemTimeStamp > stopTimeStamp) {
+                if (itemTimeStamp > STOPTIMESTAMP) {
                     // 在这个stopTimeStamp之内就筛选出来
                     filteredData.push(item)
                 }
